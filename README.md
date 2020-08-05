@@ -19,36 +19,36 @@ Laya版本：1.8.9
 		7、屏幕适配
 		
 ### 主要文件、目录（详见文件注释）：
-		wxcode/src/Game.ts					框架入口文件
-		wxcode/src/config.ts				框架配置文件
+		js/js/Game.js					框架入口文件
+		js/js/config.js				框架配置文件
 		
-		wxcode/src/widget					自定义控件存放目录
-		wxcode/src/widget/ProgressView.ts	进度条（由遮罩效果实现，需要WebGl）
+		js/js/widget					自定义控件存放目录
+		js/js/widget/ProgressView.js	进度条（由遮罩效果实现，需要WebGl）
 		
-		wxcode/src/utils					工具类存放目录
-		wxcode/src/utils/AniUtils.ts		公共动效类
-		wxcode/src/utils/Common.ts			游戏设置类
-		wxcode/src/utils/imageRunTime.ts	点击效果类
-		wxcode/src/utils/log.ts				统一日志打印类
-		wxcode/src/utils/Map.ts				键值对工具类
-		wxcode/src/utils/question.ts		游戏关卡定义类
-		wxcode/src/utils/SharedUtils.ts		分享工具类
-		wxcode/src/utils/sound.ts			声音工具类
-		wxcode/src/utils/syncUtil.ts		同步工具类
-		wxcode/src/utils/wxUtils.ts			微信工具类
+		js/js/utils					工具类存放目录
+		js/js/utils/AniUtils.js		公共动效类
+		js/js/utils/Common.js			游戏设置类
+		js/js/utils/imageRunTime.js	点击效果类
+		js/js/utils/log.js				统一日志打印类
+		js/js/utils/Map.js				键值对工具类
+		js/js/utils/question.js		游戏关卡定义类
+		js/js/utils/SharedUtils.js		分享工具类
+		js/js/utils/sound.js			声音工具类
+		js/js/utils/syncUtil.js		同步工具类
+		js/js/utils/wxUtils.js			微信工具类
 		
-		wxcode/src/ui						Laya界面目录（自动生成）
+		js/js/ui						Laya界面目录（自动生成）
 		
-		wxcode/src/home						游戏首页、加载页目录
-		wxcode/src/home/LoadPage.ts			加载页
+		js/js/home						游戏首页、加载页目录
+		js/js/home/LoadPage.js			加载页
 		
-		wxcode/src/game						游戏相关类目录
-		wxcode/src/game/GameInfo.ts			游戏主页
-		wxcode/src/game/PassPage.ts			过关结算页
-		wxcode/src/game/SettingsDialog.ts	游戏设置对话框
+		js/js/game						游戏相关类目录
+		js/js/game/GameInfo.js			游戏主页
+		js/js/game/PassPage.js			过关结算页
+		js/js/game/SettingsDialog.js	游戏设置对话框
 		
-		wxcode/src/effect					特效相关目录
-		wxcode/src/effect/CaiDai.ts			过关小彩带
+		js/js/effect					特效相关目录
+		js/js/effect/CaiDai.js			过关小彩带
 		
 ### 接口说明
 		js/js/Game.js				loadLaya()：	小游戏入口函数，初始舞台，加载图集，加载缓存，加载LoadPage
