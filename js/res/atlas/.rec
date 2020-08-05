@@ -1,0 +1,20 @@
+D .
+R 5EBB4E93 texture.png
+D comp
+R 71386217 bg.png
+P 41C23E2A hand.png
+P 75139646 imgBgAlpha.png
+P F6FA04E1 imgBtnBgPass.png
+P A7F4B5EF imgCbMusic.png
+P 8C940224 imgCbSound.png
+P 71116A94 imgCbVirbate.png
+R 20253B87 imgProgressBar.png
+R FB1C72CD imgProgressBarBg.png
+P 8D8CBBA4 imgTextNext.png
+R 91F05BF1 loginProgressGlass.png
+R 2E157B32 passbg.png
+P F2032115 passPopupBg.png
+R 30962068 purple-.png
+P AF801A53 purple.png
+P 9ED7D205 red_dot.png
+D subassets
