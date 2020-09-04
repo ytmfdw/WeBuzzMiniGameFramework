@@ -14,6 +14,7 @@ Laya版本：1.8.9
 		6、加载页、首页、游戏页、过关结算页 只完成基本框架，没实现业务逻辑 
 		7、屏幕适配
 		8、常用切图、音效文件
+		9、导量对话框
 		
 ### 主要文件、目录（详见文件注释）：
 		Game.js					框架入口文件
@@ -38,11 +39,14 @@ Laya版本：1.8.9
 		
 		home						游戏首页、加载页目录
 		home/LoadPage.js			加载页
+		home/DrawerItem.js			导量的items
 		
 		game						游戏相关类目录
 		game/GameInfo.js			游戏主页
 		game/PassPage.js			过关结算页
 		game/SettingsDialog.js	游戏设置对话框
+		game/appListDialog.js	导量对话框
+		game/appListDialog1.js	新导量对话框
 		
 		effect					特效相关目录
 		effect/CaiDai.js			过关小彩带
