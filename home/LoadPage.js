@@ -70,7 +70,8 @@ var LoadPage = /** @class */ (function (_super) {
         return LoadPage.self;
     };
     LoadPage.prototype.loadRes = function (callBack) {
-        this.callBack = callBack;
+        //不用多分包加载，请用这段代码
+/*        this.callBack = callBack;
         this.setProgress(0);
         var thiz = this;
         var loadTask = wx.loadSubpackage({
@@ -99,7 +100,71 @@ var LoadPage = /** @class */ (function (_super) {
             thiz.totalProgress[0] = res.totalBytesWritten / res.totalBytesExpectedToWrite * 100;
             var per = (thiz.totalProgress[0]) / 100;
             thiz.setProgress(per * 100);
-        });
+        });*/
+        //以下用于多分包分级加载
+        this.callBack = callBack;
+        this.setProgress(0);
+        var thiz = this;
+        thiz.loadIndex = 0;
+        var isSuccess = true;
+        if (this.subLen == 0) {
+            thiz.onCompelete(isSuccess);
+            return;
+        }
+        var grade = calcGrade(game.all_level + 1);
+        Log.d("calcGrade:::" + grade);
+        if (grade > LEVELS_COUNT.length) {
+            grade = LEVELS_COUNT.length;
+        }
+        this.subpackage[1] = this.subpackage[1].replace("{num}", grade + '');
+        Log.d(this.subpackage);
+        var _loop_1 = function (i) {
+            if (thiz.stateFlag[i]) {
+                thiz.loadIndex++;
+                // thiz.loadProgress.value = thiz.loadIndex / thiz.subLen;
+                // thiz.loadText.text = '正在玩命加载...' + thiz.loadIndex + '/' + thiz.subLen;
+                if (thiz.loadIndex == thiz.subLen) {
+                    thiz.onCompelete(isSuccess);
+                }
+                else {
+                    return "continue";
+                }
+            }
+            var loadTask = wx.loadSubpackage({
+                name: thiz.subpackage[i],
+                success: function (res) {
+                    // 分包加载成功后通过 success 回调
+                    Log.d(res);
+                    thiz.stateFlag[i] = true;
+                },
+                fail: function (res) {
+                    // 分包加载失败通过 fail 回调
+                    isSuccess = false;
+                    thiz.stateFlag[i] = false;
+                },
+                complete: function () {
+                    thiz.loadIndex++;
+                    log("分包加载完成:::" + thiz.subpackage[i]);
+                    if (thiz.loadIndex == thiz.subLen) {
+                        loadedLevels.push(grade);
+                        log("分包加载完成");
+                        thiz.onCompelete(isSuccess);
+                    }
+                }
+            });
+            loadTask.onProgressUpdate(function (res) {
+                log('下载进度  i=>' + i + res.progress);
+                log('已经下载的数据长度' + res.totalBytesWritten);
+                log('预期需要下载的数据总长度' + res.totalBytesExpectedToWrite);
+                thiz.totalProgress[i] = res.totalBytesWritten / res.totalBytesExpectedToWrite * 100;
+                var per = (thiz.totalProgress[0] + thiz.totalProgress[1] + thiz.totalProgress[2]) / 300;
+                thiz.setProgress(per * 100);
+            });
+        };
+        //加载分包
+        for (var i = 0; i < this.subLen; i++) {
+            _loop_1(i);
+        }
     };
     LoadPage.prototype.setProgress = function (progress, min, max) {
         if (!isNaN(min)) {
