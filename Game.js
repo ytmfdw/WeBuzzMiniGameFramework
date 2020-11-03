@@ -576,8 +576,93 @@ wx.onShow(function (res) {
     }
     log('onShow:');
     log(res);
-    var ifShareAward = (game.shareType === ShareState.TIP || game.shareType === ShareState.BONUS || game.shareType === ShareState.LGBONUS || game.shareType === ShareState.CHARGE || game.shareType === ShareState.MONEY || game.shareType === ShareState.DOUBLE);
+    var ifShareAward = (game.shareType === ShareState.TIP);
     //判断分享模式
+    if (game.shareMode === 0) {
+        //分享后去点链接模式
+    }
+    else if (game.shareMode === 1 && game.shareStartTime > 0 && ifShareAward) {
+        // 直接分享模式
+        wx.showLoading({
+            title: '加载中...',
+            mask: true
+        });
+        game.shareBackTime = (new Date()).getTime();
+        var tmpShareUseTime = game.shareBackTime - game.shareStartTime;
+        //延时判断是否有取消或超时
+        Laya.timer.once(1000, game, function () {
+            wx.hideLoading();
+            log('判断是否有取消分享：' + game.shareCancel + ',分享用时：' + tmpShareUseTime + ',分享用时阈值：' + game.shareUseTime);
+            if (game.shareCancel || (tmpShareUseTime < game.shareUseTime)) {
+                // 取消分享或者分享用时太短，提示分享失败
+                wxUtils.aldSendEventFunc('取消分享或用时太短', { 'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime });
+                wx.showModal({
+                    title: '温馨提示',
+                    content: '分享失败，请分享到不同群',
+                    showCancel: true,
+                    cancelText: '取消',
+                    confirmText: '确定',
+                    success: function (callBack) {
+                        if (callBack.confirm) {
+                            SharedUtils.wxShareFunc(game.shareType, game.shareQuery);
+                        }
+                        else if (callBack.cancel) {
+                        }
+                    }
+                });
+            }
+            else {
+                //分享成功，直接获利
+                wxUtils.aldSendEventFunc('直接分享判断成功', { 'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime });
+                log('shareType=' + game.shareType + ',shareQuery=' + game.shareQuery);
+                if (game.shareType === ShareState.TIP) {
+                    wxUtils.aldSendEventFunc('免费提示直接分享并获得提示', { 'level': '' + game.level });
+                    //获得提示
+                    wx.showToast({
+                        title: '获得提示',
+                        icon: 'success',
+                        duration: 500,
+                        mask: true,
+                    });
+                    gameUiSelf.showTipFunc();
+                    game.tipShareTimes += 1;
+                }
+            }
+            //重置参数
+            game.shareCancel = false;
+            game.shareStartTime = 0;
+            game.shareBackTime = 0;
+        });
+    }
+    //判断是否从其它小程序跳转过来
+    if (res.referrerInfo && res.referrerInfo.appId && res.scene && res.scene == 1037) {
+        var fromAppId = res.referrerInfo.appId;
+        //更新跳转列表
+        if (allNavigateList.indexOf(fromAppId) == -1) {
+            allNavigateList.push(fromAppId);
+        }
+        //判断是否带跳转列表过来 
+        if (res.referrerInfo.extraData && res.referrerInfo.extraData.type === 'navi' && res.referrerInfo.extraData.list) {
+            var other_list = JSON.parse(res.referrerInfo.extraData.list);
+            log('other_list:');
+            log(other_list);
+            //更新跳转列表
+            for (var i = 0; i < other_list.length; i++) {
+                var tappid = other_list[i];
+                if (allNavigateList.indexOf(tappid) == -1) {
+                    allNavigateList.push(tappid);
+                }
+            }
+        }
+        Laya.Browser.window.wx.setStorageSync(USER_ALL_NAVIGATION_APPID_LIST_KEY, JSON.stringify(allNavigateList));
+        log('从其它小程序跳转过来：fromAppId=' + fromAppId);
+        wxUtils.aldSendEventFunc('从其它小程序跳转过来', { 'fromApp': fromAppId });
+    }
+    //记录分享图点击
+    if (res && res.query && res.query.img) {
+        log('点击分享图：' + res.query.img);
+        wxUtils.aldSendEventFunc('点击分享图', { 'detail': res.query.img });
+    }
 });
 wx.onHide(function () {
     // syncUtils.syncUserData();

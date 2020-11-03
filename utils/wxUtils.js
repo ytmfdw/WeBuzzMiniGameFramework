@@ -1,44 +1,20 @@
-/*
- *
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *  微信小游戏 工具类
- *  主要功能：
- *      Banner展示
- *      插屏展示
- *      视频播放
- *      分享
- *
- */
-/**
- * 7. 微信分享设置
- */
-wx.showShareMenu({
-    withShareTicket: false
-});
-wx.onShareAppMessage(function () {
-    var tmp_query = 'uid=' + game.userId + '&state=' + ShareState.MENU;
-    tmp_query += ('&img=P0&' + game.SHARED_PARAM);
-    log('wxShare query:' + tmp_query);
-    game.shareType = ShareState.MENU;
-    game.shareQuery = tmp_query;
-    return {
-        query: tmp_query,
-        title: game.SHARED_TITLE,
-        imageUrl: game.SHARED_URL
-    };
-});
+if (WX_MODE) {
+    wx.showShareMenu({
+        withShareTicket: false
+    });
+    wx.onShareAppMessage(function () {
+        var tmp_query = 'uid=' + game.userId + '&state=' + ShareState.OTHER;
+        tmp_query += ('&img=P0&' + game.SHARED_PARAM);
+        log('wxShare query:' + tmp_query);
+        game.shareType = ShareState.OTHER;
+        game.shareQuery = tmp_query;
+        return {
+            query: tmp_query,
+            title: game.SHARED_TITLE,
+            imageUrl: game.SHARED_URL
+        };
+    });
+}
 var wxUtils = /** @class */ (function () {
     function wxUtils() {
     }
@@ -51,7 +27,7 @@ var wxUtils = /** @class */ (function () {
         wxUtils.onLoading = true;
         if (wxUtils.tipVideoAd == null) {
             wxUtils.tipVideoAd = wx.createRewardedVideoAd({
-                adUnitId: 'adunit-e710f84840844d07'
+                adUnitId: 'adId'
             });
         }
         if (wxUtils.tipVideoAd != null) {
@@ -107,7 +83,7 @@ var wxUtils = /** @class */ (function () {
         var tH = game.gameUi.btnTipLayout.y + game.gameUi.btnTipLayout.height;
         // log('Game Banner tH=' + tH);
         wxUtils.gameBannerAd = wx.createBannerAd({
-            adUnitId: 'adunit-45e1a93752f4357d',
+            adUnitId: 'adId',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -145,6 +121,9 @@ var wxUtils = /** @class */ (function () {
             //显示导量矩阵
             wxUtils.hideBanner();
             var ifShowNavi = (ifNaviCheckArea == false) || (ifNaviCheckArea && areaCon);
+            if (gameUiSelf && ifShowNavi) {
+                gameUiSelf.showBottomAppList();
+            }
         });
     };
     //显示过关页面banner
@@ -157,7 +136,7 @@ var wxUtils = /** @class */ (function () {
         }
         var tH = game.passPage.contentLayout.y + game.passPage.contentLayout.height;
         wxUtils.nextBannerAd = wx.createBannerAd({
-            adUnitId: 'adunit-45e1a93752f4357d',
+            adUnitId: 'adId',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -204,7 +183,7 @@ var wxUtils = /** @class */ (function () {
         }
         var tH = 1760 + IPHONEX_TOP;
         wxUtils.popBannerAd = wx.createBannerAd({
-            adUnitId: 'adunit-45e1a93752f4357d',
+            adUnitId: 'adId',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -223,6 +202,13 @@ var wxUtils = /** @class */ (function () {
                         'from': 'popBanner'
                     });
                     // ifLoadNextBanner = true;
+                    if (game.passBannerDelay >= 0) {
+                        //btn覆盖，60ms后上移btn
+                        Laya.timer.once(game.passBannerDelay, game, function () {
+                            var ty = 1680 + IPHONEX_TOP;
+                            Laya.Tween.to(appListDialog1.getSelf().btnContinue, { y: ty }, 300, Laya.Ease.linearNone);
+                        });
+                    }
                 });
             }
             else {
@@ -249,7 +235,7 @@ var wxUtils = /** @class */ (function () {
             // 创建插屏广告
             if (typeof Laya.Browser.window.wx.createInterstitialAd === 'function') {
                 wxUtils.interstitialAd = Laya.Browser.window.wx.createInterstitialAd({
-                    adUnitId: 'adunit-8f5d7dbc5705e720'
+                    adUnitId: 'adId'
                 });
             }
         }
@@ -280,9 +266,111 @@ var wxUtils = /** @class */ (function () {
                 var gameIndex = Laya.stage.getChildIndex(game.gameUi);
                 if (gameIndex >= 0) {
                     //在游戏页面
-                    game.showBonus(game.level, 0, 3);
+                    game.showNext(game.level, 0, 3);
                 }
             });
+        }
+    };
+    wxUtils.showPassPageGridAd = function () {
+        var ifShowGrid = (typeof Laya.Browser.window.wx.createCustomAd === 'function');
+        if (ifShowGrid == false)
+            return;
+        var leftX = 90;
+        var rateX = game.screenWidth / 1080;
+        var topY = game.passPage.contentLayout.y + game.passPage.topApp.y + game.passPage.topApp.height + 10;
+        if (wxUtils.gridAd1 == null) {
+            if (ifShowGrid) {
+                wxUtils.gridAd1 = Laya.Browser.window.wx.createCustomAd({
+                    adUnitId: 'adId',
+                    adIntervals: 30,
+                    style: {
+                        left: 0 * rateX,
+                        top: topY * game.scaleX,
+                        width: 240 * rateX,
+                        fixed: false
+                    }
+                });
+            }
+        }
+        if (wxUtils.gridAd2 == null) {
+            if (ifShowGrid) {
+                wxUtils.gridAd2 = Laya.Browser.window.wx.createCustomAd({
+                    adUnitId: 'adId',
+                    adIntervals: 30,
+                    style: {
+                        left: 840 * rateX,
+                        top: topY * game.scaleX,
+                        width: 240 * rateX,
+                        fixed: false
+                    }
+                });
+            }
+        }
+        if (wxUtils.gridAd1) {
+            wxUtils.gridAd1.show().then(function () {
+                log('格子广告1显示:');
+                wxUtils.aldSendEventFunc('格子广告显示', { 'index': 1 });
+            }).catch(function (err) {
+                log('格子广告1出错:');
+                log(err);
+                wxUtils.aldSendEventFunc('格子广告出错', { 'index': 1 });
+            });
+        }
+        if (wxUtils.gridAd2) {
+            wxUtils.gridAd2.show().then(function () {
+                log('格子广告2显示:');
+                wxUtils.aldSendEventFunc('格子广告显示', { 'index': 2 });
+            }).catch(function (err) {
+                log('格子广告2出错:');
+                log(err);
+                wxUtils.aldSendEventFunc('格子广告出错', { 'index': 2 });
+            });
+        }
+    };
+    wxUtils.showGamePageGridAd = function () {
+        var ifShowGrid = (typeof Laya.Browser.window.wx.createCustomAd === 'function');
+        if (ifShowGrid == false)
+            return;
+        var rateX = game.screenWidth / 1080;
+        // var topY = game.gameUi.topNavView.y + game.gameUi.topNavView.height + 10;
+        var topY = game.gameUi.btnTipLayout.y - 30;
+        if (wxUtils.gridAd3 == null) {
+            if (ifShowGrid) {
+                wxUtils.gridAd3 = Laya.Browser.window.wx.createCustomAd({
+                    adUnitId: 'addId',
+                    adIntervals: 30,
+                    style: {
+                        left: 0 * rateX,
+                        top: topY * game.scaleX,
+                        width: 240 * rateX,
+                        fixed: false
+                    }
+                });
+            }
+        }
+        if (wxUtils.gridAd3) {
+            wxUtils.gridAd3.show().then(function () {
+                log('格子广告3显示:');
+                wxUtils.aldSendEventFunc('格子广告显示', { 'index': 3 });
+            }).catch(function (err) {
+                log('格子广告3出错:');
+                log(err);
+                wxUtils.aldSendEventFunc('格子广告出错', { 'index': 3 });
+            });
+        }
+    };
+    wxUtils.hideGrid = function () {
+        if (wxUtils.gridAd1) {
+            wxUtils.gridAd1.hide();
+            // wxUtils.gridAd1.destroy();
+        }
+        if (wxUtils.gridAd2) {
+            wxUtils.gridAd2.hide();
+            // wxUtils.gridAd2.destroy();
+        }
+        if (wxUtils.gridAd3) {
+            wxUtils.gridAd3.hide();
+            // wxUtils.gridAd3.destroy();
         }
     };
     //隐藏banner
@@ -303,7 +391,7 @@ var wxUtils = /** @class */ (function () {
     //ald事件统计
     wxUtils.aldSendEventFunc = function (name, obj) {
         var spEventNames = [];
-        if (ALD_ON) {
+        if (ALD_ON && WX_MODE) {
             if (typeof Laya.Browser.window.wx.aldSendEvent === 'function') {
                 if (spEventNames.indexOf(name) == -1) {
                     // Laya.Browser.window.wx.aldSendEvent(name);
@@ -312,8 +400,175 @@ var wxUtils = /** @class */ (function () {
                     // 添加channel
                     obj['channel'] = userChannel;
                     Laya.Browser.window.wx.aldSendEvent(name, obj);
+                    // 自定义事件
+                    this.sendWebuzzEvent(name, obj);
                 }
             }
+        }
+    };
+    wxUtils.sendWebuzzEvent = function (name, param) {
+        if (param === void 0) { param = {}; }
+        switch (name) {
+            case "登录后加载游戏页":
+                var randomID = 0;
+                var isChannel = 0;
+                var otherAppid = "";
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                    randomID = 1;
+                }
+                var launchOptions = Laya.Browser.window.wx.getLaunchOptionsSync();
+                if (launchOptions.query && launchOptions.query.channel) {
+                    isChannel = 1;
+                }
+                if (launchOptions.referrerInfo && launchOptions.referrerInfo.appId) {
+                    otherAppid = launchOptions.referrerInfo.appId;
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "is_new": (newUser ? 1 : 0),
+                        "channel": userChannel,
+                        "scene": launchOptions.scene,
+                        "is_channel": isChannel,
+                        "channel_appid": otherAppid,
+                        "is_random": randomID
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "下一关展示":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "level": game.level
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "广告加载成功-banner":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "type": "banner",
+                        "from": ""
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "视频播放成功":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "type": "video",
+                        "from": ""
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "插屏广告显示":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "type": "chapin",
+                        "from": ""
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "格子广告显示":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "type": "custom",
+                        "from": ""
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            case "成功跳转其它游戏":
+                if (!game.openId) {
+                    game.openId = Math.random().toString(36).substr(2, 18);
+                }
+                Laya.Browser.window.wx.request({
+                    url: 'https://fxxk.com/',
+                    data: {
+                        "appid": APPID,
+                        "openid": game.openId,
+                        "channel": userChannel,
+                        "c_appid": param["appid"],
+                        "showname": param["toApp"],
+                        "type": 1,
+                        "from": param["from"],
+                        "skin": param["skin"],
+                        "today": 0,
+                        "history": 0
+                    },
+                    method: 'POST',
+                    success: function (obj) {
+                    },
+                    fail: function (error) {
+                    }
+                });
+                break;
+            default:
+                break;
         }
     };
     /**
@@ -387,6 +642,10 @@ var wxUtils = /** @class */ (function () {
     wxUtils.popBannerAd = null;
     // 定义插屏广告
     wxUtils.interstitialAd = null;
+    // 格子广告
+    wxUtils.gridAd1 = null;
+    wxUtils.gridAd2 = null;
+    wxUtils.gridAd3 = null;
     return wxUtils;
 }());
 //# sourceMappingURL=wxUtils.js.map
