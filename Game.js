@@ -99,16 +99,14 @@ var Game = /** @class */ (function () {
         this.SHARED_URL = 'subassets/share.jpg';
         this.SHARED_TITLE = "据说只有1%的人能过关，是你吗？";
         this.SHARED_PARAM = "";
-        this.SHARED_IMG_ARR = [
-            {
-                "id": "P0",
-                "url": "subassets/share.jpg",
-                "t": "据说只有1%的人能过关，是你吗？",
-                "p": "",
-                "min": 0,
-                "max": 1
-            }
-        ];
+        this.SHARED_IMG_ARR = [{
+            "id": "P0",
+            "url": "subassets/share.jpg",
+            "t": "据说只有1%的人能过关，是你吗？",
+            "p": "",
+            "min": 0,
+            "max": 1
+        }];
         //导流app
         this.ifShowOtherApp = false;
         this.GOTO_APPID = "";
@@ -245,8 +243,7 @@ var Game = /** @class */ (function () {
         //初始化云开发
         if (!Laya.Browser.window.wx.cloud) {
             log('请使用 2.2.3 或以上的基础库以使用云能力');
-        }
-        else {
+        } else {
             Laya.Browser.window.wx.cloud.init({
                 env: ENV_ID,
                 traceUser: true,
@@ -268,8 +265,7 @@ var Game = /** @class */ (function () {
             //首次登陆或者本地无缓存，设置成0
             wx.setStorageSync(ALL_LEVEL_KEY, 0);
             this.all_level = 0;
-        }
-        else {
+        } else {
             this.all_level = Math.floor(tmp_level);
         }
         //获取本地金币数量
@@ -277,8 +273,7 @@ var Game = /** @class */ (function () {
         if (tmp_coin === '' || tmp_coin === undefined || tmp_coin === null) {
             //本地无金币,初始10枚
             this.coinNum = 10;
-        }
-        else {
+        } else {
             this.coinNum = Math.floor(tmp_coin);
         }
         //获取openId
@@ -295,8 +290,7 @@ var Game = /** @class */ (function () {
             //登录参数有channel
             userChannel = lauch.query.channel;
             wx.setStorageSync('userChannel', userChannel);
-        }
-        else {
+        } else {
             if (channel) {
                 //本地有channel
                 userChannel = channel;
@@ -310,43 +304,225 @@ var Game = /** @class */ (function () {
             if (current_date != login_date) {
                 Laya.Browser.window.wx.setStorageSync(USER_LAST_LOGIN_DATE_KEY, current_date);
             }
-        }
-        else {
+        } else {
             Laya.Browser.window.wx.setStorageSync(USER_LAST_LOGIN_DATE_KEY, current_date);
         }
     };
     /*
-    * 1. 获取当前版本的功能设置
-    */
+     * 1. 获取当前版本的功能设置
+     */
     Game.prototype.initVersionSettings = function () {
         var that = this;
         //获取settings
         var db = Laya.Browser.window.wx.cloud.database();
         var docid = 'version_' + VERSION;
-        db.collection('settings_block')
+        db.collection('version_settings')
             .doc(docid)
             .get()
             .then(function (res) {
-            log('getVersionSettings:');
-            //获取设置后，再登录
-            that.login();
-        }).catch(function (e) {
-            log(e);
-            that.login();
-            that.DRAWER_APP_ARRAY = NavigateAppArray;
-            that.GOTO_APP_ARRAY = NavigateAppArray;
-            ifGotAppList = true;
-            // that.setOtherApp();
-            that.setGameUiNavi();
-            //设置定时更新导流app
-            // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
+                var settings = res.data;
+                if (settings) {
+                    log(settings);
+                    game.VersionSettings = settings;
+                    ifGotVersionSet = true;
+                    if (settings.channelFilter !== undefined) {
+                        channelFilter = settings.channelFilter;
+                    }
+                    if (settings.ifShowBonus !== undefined) {
+                        game.ifShowBonus = settings.ifShowBonus;
+                    }
+                    //导流appId
+                    if (settings.ifShowOtherApp !== undefined) {
+                        game.ifShowOtherApp = settings.ifShowOtherApp;
+                    }
+                    if (settings.ifShowBanner !== undefined) {
+                        game.ifShowBanner = settings.ifShowBanner;
+                    }
+                    //分享和视频模式云控
+                    if (settings.tipLevel !== undefined) {
+                        game.tipLevel = settings.tipLevel;
+                    }
+                    if (settings.tipMode1 !== undefined) {
+                        game.tipMode1 = settings.tipMode1;
+                    }
+                    if (settings.tipN1 !== undefined) {
+                        game.tipN1 = settings.tipN1;
+                    }
+                    if (settings.tipMode2 !== undefined) {
+                        game.tipMode2 = settings.tipMode2;
+                    }
+                    if (settings.tipN2 !== undefined) {
+                        game.tipN2 = settings.tipN2;
+                    }
+                    if (settings.tipArr !== undefined) {
+                        game.tipArr = settings.tipArr;
+                    }
+                    if (settings.gameBottomModel !== undefined) {
+                        game.gameBottomModel = settings.gameBottomModel;
+                    }
+                    if (settings.passBottomModel !== undefined) {
+                        game.passBottomModel = settings.passBottomModel;
+                    }
+                    if (settings.gameBottomAppType !== undefined) {
+                        game.gameBottomAppType = settings.gameBottomAppType;
+                    }
+                    if (settings.shareMode !== undefined) {
+                        game.shareMode = settings.shareMode;
+                    }
+                    if (settings.shareUseTime !== undefined) {
+                        game.shareUseTime = settings.shareUseTime;
+                    }
+                    //ald统计开关
+                    if (settings.ALD_ON !== undefined) {
+                        ALD_ON = settings.ALD_ON;
+                    }
+                    if (settings.ALD_SHARE_ON !== undefined) {
+                        ALD_SHARE_ON = settings.ALD_SHARE_ON;
+                    }
+                    // 过关页banner覆盖
+                    if (settings.passBannerDelay !== undefined) {
+                        game.passBannerDelay = settings.passBannerDelay;
+                    }
+                    if (settings.passBtnDelay !== undefined) {
+                        game.passBtnDelay = settings.passBtnDelay;
+                    }
+                    if (settings.ifCheckArea !== undefined) {
+                        ifCheckArea = settings.ifCheckArea;
+                    }
+                    if (settings.ifNaviCheckArea !== undefined) {
+                        ifNaviCheckArea = settings.ifNaviCheckArea;
+                    }
+                    //是否显示插屏
+                    if (settings.ifShowInter !== undefined) {
+                        game.ifShowInter = settings.ifShowInter;
+                    }
+                    if (settings.showInterN !== undefined) {
+                        game.showInterN = settings.showInterN;
+                    }
+                    if (settings.showInterCount !== undefined) {
+                        game.showInterCount = settings.showInterCount;
+                    }
+                    //重复跳转模式
+                    if (settings.repeatNavType !== undefined) {
+                        game.repeatNavType = settings.repeatNavType;
+                    }
+                    if (settings.cancelBtnDelay !== undefined) {
+                        game.cancelBtnDelay = settings.cancelBtnDelay;
+                    }
+                    if (settings.cancelLevel !== undefined) {
+                        game.cancelLevel = settings.cancelLevel;
+                    }
+                    if (settings.autoNaviLevel !== undefined) {
+                        game.autoNaviLevel = settings.autoNaviLevel;
+                    }
+                    if (settings.goodIconList !== undefined) {
+                        game.goodIconList = settings.goodIconList;
+                    }
+                    if (settings.goodIconLevel !== undefined) {
+                        game.goodIconLevel = settings.goodIconLevel;
+                    }
+                    if (settings.navi3Visible !== undefined) {
+                        game.navi3Visible = settings.navi3Visible;
+                    }
+                    if (settings.navi3Banner !== undefined) {
+                        game.navi3Banner = settings.navi3Banner;
+                    }
+                    if (settings.nextNaviOrderMode !== undefined) {
+                        game.nextNaviOrderMode = settings.nextNaviOrderMode;
+                    }
+                    if (settings.nextChangeTime !== undefined) {
+                        game.nextChangeTime = settings.nextChangeTime;
+                    }
+                    // 格子广告显示
+                    if (settings.gridAdShowArr !== undefined) {
+                        game.gridAdShowArr = settings.gridAdShowArr;
+                    }
+                    // if (game.ifShowOtherApp && game.gameUi) {
+                    //     game.setOtherApp();
+                    // }
+                    game.setSpecialSetting();
+                    //导量列表
+                    var applist = settings.appList;
+                    if (applist) {
+                        // log('导量列表：'); log(applist);
+                        that.DRAWER_APP_ARRAY = applist;
+                        that.GOTO_APP_ARRAY = applist;
+                        ifGotAppList = true;
+                        // that.setOtherApp();
+                        that.setGameUiNavi();
+                        //设置定时更新导流app
+                        // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
+                    } else {
+                        that.DRAWER_APP_ARRAY = NavigateAppArray;
+                        that.GOTO_APP_ARRAY = NavigateAppArray;
+                        ifGotAppList = true;
+                        // that.setOtherApp();
+                        that.setGameUiNavi();
+                        //设置定时更新导流app
+                        // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
+                    }
+                } else {
+                    that.DRAWER_APP_ARRAY = NavigateAppArray;
+                    that.GOTO_APP_ARRAY = NavigateAppArray;
+                    ifGotAppList = true;
+                    // that.setOtherApp();
+                    that.setGameUiNavi();
+                    //设置定时更新导流app
+                    // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
+                }
+                //获取设置后再登录
+                that.login();
+            }).catch(function (e) {
+                log(e);
+                that.login();
+                that.DRAWER_APP_ARRAY = NavigateAppArray;
+                that.GOTO_APP_ARRAY = NavigateAppArray;
+                ifGotAppList = true;
+                // that.setOtherApp();
+                that.setGameUiNavi();
+                //设置定时更新导流app
+                // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
+            });
+    };
+    Game.prototype.getArSetting = function () {
+        //获取导流app列表
+        var that = this;
+        wx.request({
+            url: "https://fxxk.com",
+            dataType: 'json',
+            header: {
+                'content-type': 'application/json'
+            },
+            success: function (res) {
+                log(res.data);
+                if (res.data.state >= 0) {
+                    test = res.data.data.test1 && res.data.data.test2;
+                }
+                ifGotArea = true;
+                that.setSpecialSetting();
+                that.setGameUiNavi();
+            },
+            fail: function (err) {
+                test = true;
+                test2 = true;
+                that.setSpecialSetting();
+                that.setGameUiNavi();
+                log(err);
+            }
         });
     };
     Game.prototype.setSpecialSetting = function () {
+        if (ifGotVersionSet && ifGotArea) {
+            flag = (test == false) || (test2 == true && test == false);
+            if (flag == false) {
+                game.passBannerDelay = -1;
+            }
+        }
+        return;
     };
     /*
-    * 2. 登录
-    */
+     * 2. 登录
+     */
     Game.prototype.login = function () {
         log("================login================");
         log("userChannel = " + userChannel);
@@ -358,8 +534,7 @@ var Game = /** @class */ (function () {
           }*/
         if (that.openId && that.openId.length > 8) {
             aldSendOpenId(channel, that.openId);
-        }
-        else {
+        } else {
             Laya.Browser.window.wx.cloud.callFunction({
                 name: 'login'
             }).then(function (res) {
@@ -403,12 +578,9 @@ var Game = /** @class */ (function () {
         Laya.loader.load(urls, Laya.Handler.create(this, this.onAssetLoaded), Laya.Handler.create(this, this.onLoading), Laya.Loader.ATLAS);
         // 侦听加载失败
         Laya.loader.on(Laya.Event.ERROR, this, this.onError);
-    };
-    ;
-    Game.prototype.onError = function (e) {
-    };
-    Game.prototype.onLoading = function (progress) {
-    };
+    };;
+    Game.prototype.onError = function (e) {};
+    Game.prototype.onLoading = function (progress) {};
     Game.prototype.showLogin = function () {
         if (isLoadSubpackages && ifGotVersionSet) {
             if (game.loginIconList.length > 0 && game.specChannelList.length > 0 && userScene == 1037 && game.specChannelList.indexOf(userChannel) > -1) {
@@ -432,15 +604,16 @@ var Game = /** @class */ (function () {
         wx.hideLoading();
         var that = this;
         log('加载游戏页');
-        wxUtils.aldSendEventFunc('登录后加载游戏页', { 'level': '' + that.all_level });
+        wxUtils.aldSendEventFunc('登录后加载游戏页', {
+            'level': '' + that.all_level
+        });
         var loadPage = LoadPage.getSelf(function () {
             isLoadSubpackages = true;
             that.isLoadAssets = true;
             soundUtils.playBgMusic();
             if (that.all_level >= allQuestionLen) {
                 that.initGame(that.all_level);
-            }
-            else {
+            } else {
                 that.initGame(that.all_level + 1);
             }
             that.showLogin();
@@ -462,17 +635,13 @@ var Game = /** @class */ (function () {
                 //如果有引导动画，也得移除
                 this.gameUi.removeGif();
             }
-        }
-        catch (e) { //log('移除 gameUi 失败' + e); 
-        }
-        ;
+        } catch (e) { //log('移除 gameUi 失败' + e); 
+        };
         try {
             if (this.passPage)
                 Laya.stage.removeChild(this.passPage);
-        }
-        catch (e) { //log('移除 passPage 失败' + e); 
-        }
-        ;
+        } catch (e) { //log('移除 passPage 失败' + e); 
+        };
     };
     //初始化游戏界面
     Game.prototype.initGame = function (levelIndex) {
@@ -546,27 +715,75 @@ var Game = /** @class */ (function () {
         log('加载游戏页');
         if (this.all_level >= allQuestionLen) {
             this.initGame(this.all_level);
-        }
-        else {
+        } else {
             this.initGame(this.all_level + 1);
         }
     };
     //更新跳转列表
     Game.prototype.updateHistoryNavAppList = function (appid) {
+        if (dailyNavigateList.indexOf(appid) == -1) {
+            dailyNavigateList.push(appid);
+            Laya.Browser.window.wx.setStorageSync(USER_DAILY_NAVIGATION_APPID_LIST_KEY, JSON.stringify(dailyNavigateList));
+        }
+        if (allNavigateList.indexOf(appid) == -1) {
+            allNavigateList.push(appid);
+            Laya.Browser.window.wx.setStorageSync(USER_ALL_NAVIGATION_APPID_LIST_KEY, JSON.stringify(allNavigateList));
+        }
     };
     //更新当前可跳转的app列表
     Game.prototype.updateWaitingNavAppList = function () {
+        if (game.GOTO_APP_ARRAY != null && game.GOTO_APP_ARRAY.length > 0) {
+            //剔除已跳转的
+            game.WAITING_APP_ARRAY = [];
+            for (var i = 0; i < game.GOTO_APP_ARRAY.length; i++) {
+                var app = game.GOTO_APP_ARRAY[i];
+                if ((app.filter_mode == 1 && dailyNavigateList.indexOf(app.appid) > -1) ||
+                    (app.filter_mode == 2 && allNavigateList.indexOf(app.appid) > -1)) {
+                    continue;
+                }
+                //未跳转的
+                game.WAITING_APP_ARRAY.push(app);
+            }
+        }
+        // log('WAITING_APP_ARRAY:');log(game.WAITING_APP_ARRAY); 
     };
     //设置游戏页导量
     Game.prototype.setGameUiNavi = function () {
-    };
+        if (ifGotAppList && ifGotArea && this.gameUi) {
+            // 底部导量
+            if (this.gameBottomModel < 0) {
+                //什么都不显示
+                wxUtils.hideBanner();
+                this.gameUi.bottomApp.visible = false;
+            } else {
+                var tmpBoRd = Math.random();
+                log('gameBottomModel=' + this.gameBottomModel + ',tmpBoRd=' + tmpBoRd);
+                if (tmpBoRd < this.gameBottomModel) {
+                    //显示banner
+                    wxUtils.showGameBanner();
+                    this.gameUi.bottomApp.visible = false;
+                } else {
+                    //显示导量矩阵
+                    wxUtils.hideBanner();
+                    this.gameUi.showBottomAppList();
+                }
+            }
+            // wxUtils.showGameBanner();
+            // 顶部导量
+            this.gameUi.showTopAppList();
+            // 游戏页格子广告
+            if (this.gridAdShowArr[0] == 1 && this.level > 3) {
+                wxUtils.showGamePageGridAd();
+            }
+        };
+    }
     return Game;
 }());
 //程序入口
 var game = new Game();
 /*
  * 4. Wx OnShow 入口
-*/
+ */
 wx.onShow(function (res) {
     game.onShowRes = res;
     game.shareTicket = res.shareTicket;
@@ -580,8 +797,7 @@ wx.onShow(function (res) {
     //判断分享模式
     if (game.shareMode === 0) {
         //分享后去点链接模式
-    }
-    else if (game.shareMode === 1 && game.shareStartTime > 0 && ifShareAward) {
+    } else if (game.shareMode === 1 && game.shareStartTime > 0 && ifShareAward) {
         // 直接分享模式
         wx.showLoading({
             title: '加载中...',
@@ -595,7 +811,9 @@ wx.onShow(function (res) {
             log('判断是否有取消分享：' + game.shareCancel + ',分享用时：' + tmpShareUseTime + ',分享用时阈值：' + game.shareUseTime);
             if (game.shareCancel || (tmpShareUseTime < game.shareUseTime)) {
                 // 取消分享或者分享用时太短，提示分享失败
-                wxUtils.aldSendEventFunc('取消分享或用时太短', { 'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime });
+                wxUtils.aldSendEventFunc('取消分享或用时太短', {
+                    'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime
+                });
                 wx.showModal({
                     title: '温馨提示',
                     content: '分享失败，请分享到不同群',
@@ -605,18 +823,19 @@ wx.onShow(function (res) {
                     success: function (callBack) {
                         if (callBack.confirm) {
                             SharedUtils.wxShareFunc(game.shareType, game.shareQuery);
-                        }
-                        else if (callBack.cancel) {
-                        }
+                        } else if (callBack.cancel) {}
                     }
                 });
-            }
-            else {
+            } else {
                 //分享成功，直接获利
-                wxUtils.aldSendEventFunc('直接分享判断成功', { 'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime });
+                wxUtils.aldSendEventFunc('直接分享判断成功', {
+                    'detail': '' + game.shareType + '-' + game.userId + '-' + tmpShareUseTime
+                });
                 log('shareType=' + game.shareType + ',shareQuery=' + game.shareQuery);
                 if (game.shareType === ShareState.TIP) {
-                    wxUtils.aldSendEventFunc('免费提示直接分享并获得提示', { 'level': '' + game.level });
+                    wxUtils.aldSendEventFunc('免费提示直接分享并获得提示', {
+                        'level': '' + game.level
+                    });
                     //获得提示
                     wx.showToast({
                         title: '获得提示',
@@ -656,12 +875,16 @@ wx.onShow(function (res) {
         }
         Laya.Browser.window.wx.setStorageSync(USER_ALL_NAVIGATION_APPID_LIST_KEY, JSON.stringify(allNavigateList));
         log('从其它小程序跳转过来：fromAppId=' + fromAppId);
-        wxUtils.aldSendEventFunc('从其它小程序跳转过来', { 'fromApp': fromAppId });
+        wxUtils.aldSendEventFunc('从其它小程序跳转过来', {
+            'fromApp': fromAppId
+        });
     }
     //记录分享图点击
     if (res && res.query && res.query.img) {
         log('点击分享图：' + res.query.img);
-        wxUtils.aldSendEventFunc('点击分享图', { 'detail': res.query.img });
+        wxUtils.aldSendEventFunc('点击分享图', {
+            'detail': res.query.img
+        });
     }
 });
 wx.onHide(function () {
