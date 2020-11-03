@@ -253,6 +253,7 @@ var Game = /** @class */ (function () {
         this.getUserDataFromStorage();
         //初始化版本设置
         this.initVersionSettings();
+        this.getAreaSetting();
         //加载laya
         this.loadLaya();
     }
@@ -484,7 +485,7 @@ var Game = /** @class */ (function () {
                 // Laya.timer.loop(1000 * 5, that, that.setOtherApp);
             });
     };
-    Game.prototype.getArSetting = function () {
+    Game.prototype.getAreaSetting = function () {
         //获取导流app列表
         var that = this;
         wx.request({
