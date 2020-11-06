@@ -1,20 +1,21 @@
-if (WX_MODE) {
-    wx.showShareMenu({
-        withShareTicket: false
-    });
-    wx.onShareAppMessage(function () {
-        var tmp_query = 'uid=' + game.userId + '&state=' + ShareState.OTHER;
-        tmp_query += ('&img=P0&' + game.SHARED_PARAM);
-        log('wxShare query:' + tmp_query);
-        game.shareType = ShareState.OTHER;
-        game.shareQuery = tmp_query;
-        return {
-            query: tmp_query,
-            title: game.SHARED_TITLE,
-            imageUrl: game.SHARED_URL
-        };
-    });
-}
+/**
+ * 7. 微信分享设置
+ */
+wx.showShareMenu({
+    withShareTicket: false
+});
+wx.onShareAppMessage(function () {
+    var tmp_query = 'uid=' + game.userId + '&state=' + ShareState.OTHER;
+    tmp_query += ('&img=P0&' + game.SHARED_PARAM);
+    log('wxShare query:' + tmp_query);
+    game.shareType = ShareState.OTHER;
+    game.shareQuery = tmp_query;
+    return {
+        query: tmp_query,
+        title: game.SHARED_TITLE,
+        imageUrl: game.SHARED_URL
+    };
+});
 var wxUtils = /** @class */ (function () {
     function wxUtils() {
     }
@@ -27,7 +28,7 @@ var wxUtils = /** @class */ (function () {
         wxUtils.onLoading = true;
         if (wxUtils.tipVideoAd == null) {
             wxUtils.tipVideoAd = wx.createRewardedVideoAd({
-                adUnitId: 'adId'
+                adUnitId: 'adunit-09aed24ba9637dde'
             });
         }
         if (wxUtils.tipVideoAd != null) {
@@ -83,7 +84,7 @@ var wxUtils = /** @class */ (function () {
         var tH = game.gameUi.btnTipLayout.y + game.gameUi.btnTipLayout.height;
         // log('Game Banner tH=' + tH);
         wxUtils.gameBannerAd = wx.createBannerAd({
-            adUnitId: 'adId',
+            adUnitId: 'adunit-ead5f9456ab694cd',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -136,7 +137,7 @@ var wxUtils = /** @class */ (function () {
         }
         var tH = game.passPage.contentLayout.y + game.passPage.contentLayout.height;
         wxUtils.nextBannerAd = wx.createBannerAd({
-            adUnitId: 'adId',
+            adUnitId: 'adunit-ead5f9456ab694cd',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -155,11 +156,7 @@ var wxUtils = /** @class */ (function () {
                     });
                     ifLoadNextBanner = true;
                     if (game.passBannerDelay >= 0) {
-                        //btn覆盖，60ms后上移btn
-                        Laya.timer.once(game.passBannerDelay, game, function () {
-                            var ty = game.passPage.btnNext.y - 300;
-                            Laya.Tween.to(game.passPage.btnNext, { y: ty }, 300, Laya.Ease.linearNone);
-                        });
+                      
                     }
                 });
                 ;
@@ -183,7 +180,7 @@ var wxUtils = /** @class */ (function () {
         }
         var tH = 1760 + IPHONEX_TOP;
         wxUtils.popBannerAd = wx.createBannerAd({
-            adUnitId: 'adId',
+            adUnitId: 'adunit-ead5f9456ab694cd',
             style: {
                 left: 0,
                 top: tH * game.scaleX,
@@ -235,7 +232,7 @@ var wxUtils = /** @class */ (function () {
             // 创建插屏广告
             if (typeof Laya.Browser.window.wx.createInterstitialAd === 'function') {
                 wxUtils.interstitialAd = Laya.Browser.window.wx.createInterstitialAd({
-                    adUnitId: 'adId'
+                    adUnitId: 'adunit-9073465864dee715'
                 });
             }
         }
@@ -281,7 +278,7 @@ var wxUtils = /** @class */ (function () {
         if (wxUtils.gridAd1 == null) {
             if (ifShowGrid) {
                 wxUtils.gridAd1 = Laya.Browser.window.wx.createCustomAd({
-                    adUnitId: 'adId',
+                    adUnitId: 'adunit-36639a6719a276a7',
                     adIntervals: 30,
                     style: {
                         left: 0 * rateX,
@@ -295,7 +292,7 @@ var wxUtils = /** @class */ (function () {
         if (wxUtils.gridAd2 == null) {
             if (ifShowGrid) {
                 wxUtils.gridAd2 = Laya.Browser.window.wx.createCustomAd({
-                    adUnitId: 'adId',
+                    adUnitId: 'adunit-7bdc6560b336c0e3',
                     adIntervals: 30,
                     style: {
                         left: 840 * rateX,
@@ -337,7 +334,7 @@ var wxUtils = /** @class */ (function () {
         if (wxUtils.gridAd3 == null) {
             if (ifShowGrid) {
                 wxUtils.gridAd3 = Laya.Browser.window.wx.createCustomAd({
-                    adUnitId: 'addId',
+                    adUnitId: 'adunit-89571579802ff5ef',
                     adIntervals: 30,
                     style: {
                         left: 0 * rateX,
@@ -390,8 +387,8 @@ var wxUtils = /** @class */ (function () {
     };
     //ald事件统计
     wxUtils.aldSendEventFunc = function (name, obj) {
-        var spEventNames = [];
-        if (ALD_ON && WX_MODE) {
+        var spEventNames = ["登录后加载游戏页", "成功跳转其它游戏", "广告加载成功-banner", "视频播放成功", "插屏广告显示", "下一关展示", "格子广告显示"];
+        if (ALD_ON) {
             if (typeof Laya.Browser.window.wx.aldSendEvent === 'function') {
                 if (spEventNames.indexOf(name) == -1) {
                     // Laya.Browser.window.wx.aldSendEvent(name);
@@ -399,6 +396,8 @@ var wxUtils = /** @class */ (function () {
                 else {
                     // 添加channel
                     obj['channel'] = userChannel;
+                    //统一迁移到webuzz接口
+                    obj['strategy'] = userStrategy;
                     Laya.Browser.window.wx.aldSendEvent(name, obj);
                     // 自定义事件
                     this.sendWebuzzEvent(name, obj);
@@ -425,7 +424,7 @@ var wxUtils = /** @class */ (function () {
                     otherAppid = launchOptions.referrerInfo.appId;
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
@@ -434,7 +433,8 @@ var wxUtils = /** @class */ (function () {
                         "scene": launchOptions.scene,
                         "is_channel": isChannel,
                         "channel_appid": otherAppid,
-                        "is_random": randomID
+                        "is_random": randomID,
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -448,12 +448,13 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
                         "channel": userChannel,
-                        "level": game.level
+                        "level": game.level,
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -467,13 +468,14 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
                         "channel": userChannel,
                         "type": "banner",
-                        "from": ""
+                        "from": "",
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -487,13 +489,14 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
                         "channel": userChannel,
                         "type": "video",
-                        "from": ""
+                        "from": "",
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -507,13 +510,14 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
                         "channel": userChannel,
                         "type": "chapin",
-                        "from": ""
+                        "from": "",
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -527,13 +531,14 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
                         "channel": userChannel,
                         "type": "custom",
-                        "from": ""
+                        "from": "",
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {
@@ -547,7 +552,7 @@ var wxUtils = /** @class */ (function () {
                     game.openId = Math.random().toString(36).substr(2, 18);
                 }
                 Laya.Browser.window.wx.request({
-                    url: 'https://fxxk.com/',
+                    url: 'https://www.xxx',
                     data: {
                         "appid": APPID,
                         "openid": game.openId,
@@ -558,7 +563,8 @@ var wxUtils = /** @class */ (function () {
                         "from": param["from"],
                         "skin": param["skin"],
                         "today": 0,
-                        "history": 0
+                        "history": 0,
+                        "strategy": userStrategy //统一迁移到webuzz接口
                     },
                     method: 'POST',
                     success: function (obj) {

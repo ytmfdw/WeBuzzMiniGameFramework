@@ -21,55 +21,26 @@
 //是否是调试
 var DEBUG = false;
 //版本号
-var VERSION = '0_0_1';
-var APP_CNAME = '';
-var APP_ENAME = '';
-var APPID = '	';
-var BASE_URL = "";
-//云开发id
-var ENV_ID = "";
+var VERSION = '0_1_0';
+var APP_CNAME = '小程序名称';
+var APP_ENAME = 'appName';
+var APPID = 'appid';
+var BASE_URL = "https://www.xxxx.com";
 var SCREENHEIGHT = 1920;
 var appListHeight = 1550;
-//正常状态
-var STATE_NORMAL = 1;
-//当前选中状态
-var STATE_SELECTED = 2;
-//锁定状态
-var STATE_LOCKED = 3;
-//奖励状态
-var STATE_BONUS = 4;
-//主页打开提示币对话框
-var CHARGE_DIALOG_HOME = 1;
-//游戏中打开提示币对话框
-var CHARGE_DIALOG_GAME = 2;
-//获取金币数量
-var HELP_COIN_NUM = 3;
-//方块间隙调整阈值
 var GAME_BANNER_HEIGHT = 100;
+//自定义事件
+var newUser = true;
 //iphoneX下移距离
-var IPHONEX_TOP = 130;
+var IPHONEX_TOP = 120;
 var LARGE_PHONE_H = 2000;
-//切换页面:PassPage
-var PAGE_PASS = 1;
-var WX_SHARE_KEY = 'sharedContent';
 var ALL_LEVEL_KEY = "all_level_" + APP_ENAME;
 //微信解密接口
-var WXINFOPATH = '';
-var APPNAME = '';
-//每个level题目数量
-var LEVEL_SCORE_STR = 'levelScoreStr';
-var levelScoreObj = {};
+var WXINFOPATH = 'https://Fxxk.com';
+var APPNAME = APP_ENAME;
 // 分享
 var ShareState = {
     TIP: 1,
-    BONUS: 2,
-    LGBONUS: 3,
-    CHARGE: 4,
-    GROUPRANK: 5,
-    INVITE: 6,
-    MENU: 7,
-    MONEY: 8,
-    DOUBLE: 9,
     OTHER: 0
 };
 // 是否统计ald
@@ -78,25 +49,12 @@ var ALD_ON = true;
 var ALD_SHARE_ON = true;
 //开放域数据key
 var openDataKey = 'level';
-var runPkAppid = 'wx0df340653291122c';
-//用户信息button
-var userButton = null;
 //channel
 var userChannel = '';
-var userScene = 0;
-//level name
-var LEVEL_NAME_ARR = [
-    "新手",
-    "初级",
-    "中级",
-    "高级",
-    "专家",
-    "大师"
-];
+//
+var userStrategy = 'null';
 var QUES = [];
 var ifIphoneX = false;
-var QINIU_ICON_PATH = "";
-var SUB_ICON_PATH = "icon/";
 var ICON_PATH = "";
 // 是否加载完分包资源
 var isLoadSubpackages = false;
@@ -111,29 +69,53 @@ var ifNaviCheckArea = true;
 var rN = 10;
 var loadInterAdStatus = 0; //0:不显示, 1：显示中， 2：显示成功， 3：显示失败
 var ifNextAppList = false;
-//channel过滤参数
+var allques = [];
+var quesall = [];
+//
 var channelFilter = { "default": 1 };
 var LEVEL_STARS_ARR = [];
 function aldSendOpenId(channel, openid) {
-    log("=========aldSendOpenId   channel:" + channel + ",openid:" + openid);
+    //按渠道
+    if (channel && (channel in channelFilter)) {
+        var filter = channelFilter[channel];
+        var flag = Math.random() < filter;
+        if (flag) {
+            if (typeof Laya.Browser.window.wx.aldSendOpenid === 'function') {
+                Laya.Browser.window.wx.aldSendOpenid(openid);
+            }
+        }
+    }
+    else {
+        //不包含渠道
+        var filter = 1;
+        if ('default' in channelFilter) {
+            filter = channelFilter['default'];
+        }
+        var flag = Math.random() < filter;
+        if (flag) {
+            if (typeof Laya.Browser.window.wx.aldSendOpenid === 'function') {
+                Laya.Browser.window.wx.aldSendOpenid(openid);
+            }
+        }
+    }
 }
 /**
- * 用户上一次登录日期
+ * 
  */
 var lastLoginDate = null;
 var USER_LAST_LOGIN_DATE_KEY = "USER_LAST_LOGIN_DATE";
 /**
- * 当日跳转列表
+ * 
  */
 var dailyNavigateList = [];
 var USER_DAILY_NAVIGATION_APPID_LIST_KEY = "USER_DAILY_NAVIGATION_APPID_LIST";
 /**
- * 历史跳转列表
+ * 
  */
 var allNavigateList = [];
 var USER_ALL_NAVIGATION_APPID_LIST_KEY = "USER_ALL_NAVIGATION_APPID_LIST";
 /**
- * 当日日期
+ * 
  */
 function currentDateString() {
     var current = new Date();
@@ -151,6 +133,55 @@ function getSkinStr(skin) {
         return skin;
     }
 }
-//默认导量数组
+//
 var NavigateAppArray = [];
+//
+function getAppIndex() {
+    var chanceArray = [];
+    var chance = 0;
+    for (var i = 0; i < game.WAITING_APP_ARRAY.length; i++) {
+        var tmp = game.WAITING_APP_ARRAY[i];
+        chanceArray.push([chance, chance + tmp.chance]);
+        chance += tmp.chance;
+    }
+    var rd = chance * Math.random();
+    for (var j = 0; j < chanceArray.length; j++) {
+        if (rd >= chanceArray[j][0] && rd < chanceArray[j][1]) {
+            return j;
+        }
+    }
+}
+//
+function getAppIndex2() {
+    var chanceArray = [];
+    var chance = 0;
+    for (var i = 0; i < game.WAITING_APP_ARRAY.length; i++) {
+        var tmp = game.WAITING_APP_ARRAY[i];
+        for (var d = 0; d < tmp.chance; d++) {
+            chanceArray.push(i);
+        }
+        chance += tmp.chance;
+    }
+    var chanceArray2 = shuffle(chanceArray);
+    var rd = Math.floor(chance * Math.random());
+    return chanceArray2[rd];
+}
+function shuffle(arr) {
+    var i, j, temp;
+    for (i = arr.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+    return arr;
+}
+;
+function randomNaviList(array) {
+    function randomsort(a, b) {
+        return Math.random() > 0.5 ? -1 : 1;
+    }
+    array.sort(randomsort);
+    return array;
+}
 //# sourceMappingURL=config.js.map
