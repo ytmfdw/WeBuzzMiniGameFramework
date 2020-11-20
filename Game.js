@@ -712,20 +712,26 @@ var Game = /** @class */ (function () {
     };
     //更新当前可跳转的app列表
     Game.prototype.updateWaitingNavAppList = function () {
-        if (game.GOTO_APP_ARRAY != null && game.GOTO_APP_ARRAY.length > 0) {
-            //剔除已跳转的
-            game.WAITING_APP_ARRAY = [];
-            for (var i = 0; i < game.GOTO_APP_ARRAY.length; i++) {
-                var app = game.GOTO_APP_ARRAY[i];
-                //统一迁移到webuzz接口
-                if ((app.filter == 1 && dailyNavigateList.indexOf(app.appid) > -1)
-                    || (app.filter == 2 && allNavigateList.indexOf(app.appid) > -1)) {
-                    continue;
+            if (game.GOTO_APP_ARRAY != null && game.GOTO_APP_ARRAY.length > 0) {
+                game.WAITING_APP_ARRAY = [];
+                for (var i = 0; i < game.GOTO_APP_ARRAY.length; i++) {
+                    var app = game.GOTO_APP_ARRAY[i];
+                    if ((app.filter == 1 && WxConfig.dailyNavigateList.indexOf(app.appid) > -1)
+                        || (app.filter == 2 && WxConfig.allNavigateList.indexOf(app.appid) > -1)) {
+                        continue;
+                    }
+                    game.WAITING_APP_ARRAY.push(app);
                 }
-                //未跳转的
-                game.WAITING_APP_ARRAY.push(app);
             }
-        }
+            var chanceArray = [];
+            var chance = 0;
+            for (var i = 0; i < game.WAITING_APP_ARRAY.length; i++) {
+                var tmp = game.WAITING_APP_ARRAY[i];
+                chanceArray.push([chance, chance + tmp.chance]);
+                chance += tmp.chance;
+            }
+            game.APP_SUM_CHANCE = chance;
+            game.CHANCE_APP_ARRAY = chanceArray;
     };
     //设置游戏页导量
     Game.prototype.setGameUiNavi = function () {
